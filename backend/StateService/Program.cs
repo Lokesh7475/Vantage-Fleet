@@ -2,9 +2,6 @@ using StackExchange.Redis;
 using StateService.Services;
 using StateService.Workers;
 using StateService.Hubs;
-using DotNetEnv;
-
-Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,10 +30,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 1. Connect to Redis
+// 1. Connect to Redis (safeguard against Docker startup races)
 var redisHost = Environment.GetEnvironmentVariable("REDIS_HOST") ?? "localhost:6379";
+var redisConnectionString = $"{redisHost},abortConnect=false";
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
-    ConnectionMultiplexer.Connect(redisHost));
+    ConnectionMultiplexer.Connect(redisConnectionString));
 
 // 2. Register our custom Redis Service
 builder.Services.AddSingleton<StateService.Services.IRedisService, StateService.Services.RedisService>();

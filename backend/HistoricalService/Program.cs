@@ -26,7 +26,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register Entity Framework Core with PostgreSQL and NetTopologySuite
 var connectionString = $"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost"};" +
                        $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5433"};" +
                        $"Database={Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "fleet_history"};" +
@@ -42,6 +41,13 @@ builder.Services.AddDbContext<HistoryDbContext>(options =>
 builder.Services.AddHostedService<KafkaHistoryWorker>();
 
 var app = builder.Build();
+
+// Auto-apply any pending EF Core migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HistoryDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {

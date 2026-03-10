@@ -28,6 +28,7 @@ namespace HistoricalService.Workers
             var config = new ConsumerConfig
             {
                 BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_BROKER") ?? "localhost:9092",
+
                 GroupId = "historical-service-group",
                 AutoOffsetReset = AutoOffsetReset.Earliest, // Never miss a point!
                 EnableAutoCommit = true
