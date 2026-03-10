@@ -1,0 +1,74 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fleet_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-supersecretpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-fleet_history}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+
+  ingestion-api:
+    build: 
+      context: ./backend/IngestionService
+    ports:
+      - "5195:80"
+    env_file: .env
+    depends_on:
+      - kafka
+
+  state-api:
+    build: 
+      context: ./backend/StateService
+    ports:
+      - "5196:80"
+    env_file: .env
+    depends_on:
+      - kafka
+      - redis
+
+  historical-api:
+    build: 
+      context: ./backend/HistoricalService
+    ports:
+      - "5200:80"
+    env_file: .env
+    depends_on:
+      - kafka
+      - postgres
+
+  angular-frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - state-api
+      - historical-api

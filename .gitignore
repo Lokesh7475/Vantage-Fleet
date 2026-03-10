@@ -1,0 +1,28 @@
+# ----- User Custom -----
+PROJECT_SPEC.md
+mcp_config.json
+.env
+project_structure.txt
+
+# ----- Node & Angular -----
+node_modules/
+dist/
+.angular/
+coverage/
+
+# ----- .NET Core / C# -----
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+appsettings.Development.json
+
+# ----- OS & IDEs -----
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+ehthumbs.db

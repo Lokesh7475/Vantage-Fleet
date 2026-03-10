@@ -1,0 +1,109 @@
+<div class="dashboard-container">
+    <header class="header">
+        <div class="logo">
+            <div class="pulse"></div>
+            <h1>Fleet Tracker <span style="font-weight: 400; color: var(--text-muted)">Nexus</span></h1>
+        </div>
+        <div class="status">
+            <span class="badge online">System Online</span>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="map-wrapper">
+            <div class="map-overlay"></div>
+            <app-map [selectedTruckId]="selectedTruckId" [selectedTripId]="selectedTripId"
+                [isLiveTrip]="previousTrips.length > 0 && selectedTripId === previousTrips[0].id"
+                (truckSelected)="toggleTruck($event)"></app-map>
+        </div>
+
+        <aside class="side-panel">
+            <h2>Fleet Directory</h2>
+
+            <div class="active-fleet">
+                @if (fleetData$ | async; as fleet) {
+                @for (vehicle of fleet; track vehicle.id) {
+                <div class="telemetry-card" [class.selected]="selectedTruckId === vehicle.id"
+                    [class.offline]="!vehicle.isOnline" (click)="toggleTruck(vehicle.id)">
+
+                    <div class="card-header">
+                        <h3>Vehicle ID: <span class="highlight">{{ vehicle.id }}</span></h3>
+                        @if (vehicle.isOnline) {
+                        <div class="pulse indicator"></div>
+                        } @else {
+                        <div class="indicator offline-indicator"></div>
+                        }
+                    </div>
+                    <div class="card-subheader">
+                        <p class="description">{{ vehicle.description }}</p>
+                        @if (vehicle.lastUpdatedText) {
+                        <span class="last-updated">Updated {{ vehicle.lastUpdatedText }}</span>
+                        }
+                    </div>
+
+                    <div class="accordion-content">
+                        <div class="accordion-inner">
+                            <div class="metrics">
+                                @if (vehicle.isOnline && vehicle.telemetry) {
+                                <p>Status: <strong style="color: #00ff88;">En Route</strong></p>
+                                <p>Speed: <strong>{{ vehicle.telemetry.speed }} km/h</strong></p>
+                                <p>Heading: <strong>{{ vehicle.telemetry.heading | number:'1.0-0' }}&deg;</strong></p>
+                                } @else {
+                                <p>Status: <strong style="color: var(--text-muted);">Offline</strong></p>
+                                }
+                            </div>
+
+                            @if (selectedTruckId === vehicle.id) {
+                            @if (vehicle.isOnline && activeTrip) {
+                            <div class="trips-section active-trip-section">
+                                <h4>Active Trip</h4>
+                                <div class="trip-item active-route"
+                                    [class.active-trip]="selectedTripId === activeTrip.id"
+                                    (click)="$event.stopPropagation(); selectTrip(activeTrip.id)">
+                                    <div class="trip-date">{{ activeTrip.startTime | date:'medium' }}</div>
+                                    <div class="trip-status pulse-status">
+                                        <div class="pulse"></div> Live
+                                    </div>
+                                </div>
+                            </div>
+                            }
+
+                            <div class="trips-section">
+                                <h4>Previous Trips</h4>
+                                <div class="trip-list">
+                                    @for (trip of completedTrips; track trip.id) {
+                                    <div class="trip-item" [class.active-trip]="selectedTripId === trip.id"
+                                        (click)="$event.stopPropagation(); selectTrip(trip.id)">
+                                        <div class="trip-date">{{ trip.startTime | date:'medium' }}</div>
+                                        <div class="trip-status">Completed</div>
+                                    </div>
+                                    }
+
+                                    @if (!vehicle.isOnline && activeTrip) {
+                                    <div class="trip-item" [class.active-trip]="selectedTripId === activeTrip.id"
+                                        (click)="$event.stopPropagation(); selectTrip(activeTrip.id)">
+                                        <div class="trip-date">{{ activeTrip.startTime | date:'medium' }}</div>
+                                        <div class="trip-status">Offline (Incomplete)</div>
+                                    </div>
+                                    }
+
+                                    @if (completedTrips.length === 0 && (vehicle.isOnline || !activeTrip)) {
+                                    <p class="no-history-text">No history available.</p>
+                                    }
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                }
+                } @else {
+                <div class="loading-state">
+                    <div class="pulse" style="display: inline-block; margin-right: 10px;"></div>
+                    Loading Fleet Data...
+                </div>
+                }
+            </div>
+        </aside>
+    </main>
+</div>
