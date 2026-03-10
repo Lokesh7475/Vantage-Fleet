@@ -46,7 +46,7 @@ fleet-tracker-workspace/
 ### 1. Configuration
 Clone the repository and set up your environment variables:
 ```bash
-git clone https://github.com/yourusername/fleet-tracker.git
+git clone https://github.com/yourusername/Vantage-Fleet.git
 cd fleet-tracker-workspace
 
 # Copy the example environment file
