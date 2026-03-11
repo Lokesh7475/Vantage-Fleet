@@ -8,6 +8,7 @@ A real-time, event-driven fleet tracking dashboard built with a microservices ar
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![SignalR](https://img.shields.io/badge/SignalR-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 
 ## 🏗️ System Architecture
 
@@ -39,9 +40,9 @@ fleet-tracker-workspace/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Docker & Docker Compose](https://docs.docker.com/get-docker/)
-- [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) (For local development)
-- [Node.js](https://nodejs.org/) v18+ & Angular CLI (For local frontend development)
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) (For infrastructure services)
+- [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0)
+- [Node.js](https://nodejs.org/) v18+ & Angular CLI
 
 ### 1. Configuration
 Clone the repository and set up your environment variables:
@@ -54,25 +55,42 @@ cp .env.example .env
 ```
 *(Note: You can adjust the default passwords in `.env` if desired.)*
 
-### 2. Running via Docker (Recommended)
-You can spin up the entire infrastructure (Zookeeper, Kafka, Redis, Postgres/PostGIS) and the microservices using Docker Compose.
+### 2. Start Infrastructure (Docker)
+Use Docker Compose to spin up the infrastructure services (Zookeeper, Kafka, Redis, Postgres/PostGIS):
 
 ```bash
-docker-compose up -d --build
+docker-compose up -d
 ```
 This will start:
 - 🐘 **Postgres** on port `5433`
 - 🧠 **Redis** on port `6379`
 - 📨 **Kafka** on port `9092`
+
+### 3. Start Backend APIs
+Run each backend microservice locally using the .NET CLI. Open a separate terminal for each:
+
+```bash
+dotnet run --project backend/IngestionService
+dotnet run --project backend/StateService
+dotnet run --project backend/HistoricalService
+```
+This will start:
 - 🔌 **Ingestion API** on port `5195`
 - 📡 **State API** on port `5196`
 - 📜 **Historical API** on port `5200`
+
+### 4. Start the Frontend
+```bash
+cd frontend
+npm install
+npm start
+```
 - 🌐 **Frontend UI** on port `4200`
 
 Access the dashboard at [http://localhost:4200](http://localhost:4200).
 
-### 3. Running the Simulator
-To actually see vehicles moving on the map, you need to start the simulator. The simulator posts GPS coordinates to the Ingestion API.
+### 5. Running the Simulator
+To see vehicles moving on the map, start the simulator. It posts GPS coordinates to the Ingestion API.
 
 Open a new terminal and run:
 ```bash
@@ -80,23 +98,3 @@ cd simulator/FleetSimulator
 dotnet run
 ```
 You should now see trucks driving across the map in your browser!
-
-### 4. Local Development (Without Dockerizing Apps)
-If you prefer to run the C# APIs and Angular app locally via your IDE (while keeping the databases in Docker):
-
-1. Start only the infrastructure:
-   ```bash
-   docker-compose up -d zookeeper kafka redis postgres
-   ```
-2. Start the Backend APIs:
-   ```bash
-   dotnet run --project backend/IngestionService
-   dotnet run --project backend/StateService
-   dotnet run --project backend/HistoricalService
-   ```
-3. Start the Frontend:
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
